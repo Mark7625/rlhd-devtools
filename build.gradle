@@ -13,6 +13,13 @@ project(':RLHD') {
 			systemProperty 'rlhd.model-exports-path', rootProject.file('model-exports').absolutePath
 		}
 
+		rlhd.tasks.named('processDeveloperResources') {
+			from(rlhd.file('runelite-plugin.properties')) {
+				into 'rs117/hd/dev/editor'
+				rename { 'editor-build.properties' }
+			}
+		}
+
 		rlhd.tasks.named('developerJar') {
 			exclude 'rs117/hd/DeveloperPluginTest*'
 		}
@@ -58,6 +65,8 @@ project(':RLHD') {
 			rlhd.dependencies.add('developerImplementation', rlhd.dependencies.platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
 			rlhd.dependencies.add('developerImplementation', "org.lwjgl:lwjgl")
 			rlhd.dependencies.add('developerImplementation', "org.lwjgl:lwjgl-assimp")
+			rlhd.dependencies.add('developerImplementation', 'com.github.weisj:jsvg:1.6.1')
+			rlhd.dependencies.add('developerImplementation', 'com.miglayout:miglayout-swing:11.4.2')
 			if (lwjglNativesVal) {
 				rlhd.dependencies.add('developerRuntimeOnly', "org.lwjgl:lwjgl::$lwjglNativesVal")
 				rlhd.dependencies.add('developerRuntimeOnly', "org.lwjgl:lwjgl-assimp::$lwjglNativesVal")

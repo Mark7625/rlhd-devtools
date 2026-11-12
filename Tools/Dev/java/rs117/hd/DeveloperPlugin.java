@@ -1,9 +1,12 @@
 package rs117.hd;
 
 import com.google.inject.Provides;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -12,6 +15,9 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.PluginManager;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
+import rs117.hd.dev.lights.ModelLightEditor;
 import rs117.hd.dev.sceneloader.SceneLoader;
 import rs117.hd.model.ModelExporter;
 import rs117.hd.model.ModelImporter;
@@ -38,10 +44,18 @@ public class DeveloperPlugin extends Plugin {
 	private PluginManager pluginManager;
 
 	@Inject
+	private ClientToolbar clientToolbar;
+
+	@Inject
 	private DeveloperConfig config;
 
 	private ModelExporter modelExporter;
 	private ModelImporter modelImporter;
+
+	@Nullable
+	private volatile ModelLightEditor modelEditor;
+	@Nullable
+	private NavigationButton modelEditorButton;
 
 	// From 117 HD's injector, so it works with the running 117 HD's renderer, scene & managers
 	@Nullable
@@ -66,6 +80,8 @@ public class DeveloperPlugin extends Plugin {
 
 			modelExporter = injector.getInstance(ModelExporter.class);
 			modelImporter = injector.getInstance(ModelImporter.class);
+			modelEditor = injector.getInstance(ModelLightEditor.class);
+			SwingUtilities.invokeLater(this::addModelEditorButton);
 
 			var loader = injector.getInstance(SceneLoader.class);
 			sceneLoader = loader;
@@ -78,6 +94,16 @@ public class DeveloperPlugin extends Plugin {
 
 	@Override
 	protected void shutDown() {
+		var editor = modelEditor;
+		modelEditor = null;
+		SwingUtilities.invokeLater(() -> {
+			if (modelEditorButton != null)
+				clientToolbar.removeNavigation(modelEditorButton);
+			modelEditorButton = null;
+			if (editor != null)
+				editor.close();
+		});
+
 		var loader = sceneLoader;
 		sceneLoader = null;
 		if (loader != null)
@@ -91,6 +117,25 @@ public class DeveloperPlugin extends Plugin {
 				modelExporter.close();
 			modelExporter = null;
 		});
+	}
+
+	private void addModelEditorButton() {
+		var editor = modelEditor;
+		if (editor == null || modelEditorButton != null)
+			return;
+		try (var icon = ModelLightEditor.class.getResourceAsStream("/rs117/hd/dev/editor/icons/editor-icon-32.png")) {
+			if (icon == null)
+				throw new IOException("Missing model editor icon");
+			modelEditorButton = NavigationButton.builder()
+				.tooltip("117HD Editor")
+				.icon(ImageIO.read(icon))
+				.priority(3)
+				.onClick(editor::open)
+				.build();
+			clientToolbar.addNavigation(modelEditorButton);
+		} catch (IOException ex) {
+			log.warn("Unable to add the 117HD Editor to the toolbar", ex);
+		}
 	}
 
 	@Subscribe

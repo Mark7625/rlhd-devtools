@@ -1,0 +1,38 @@
+{
+  "cursor-place-light": [
+    16,
+    16
+  ],
+  "cursor-remove-light": [
+    16,
+    16
+  ],
+  "cursor-pick-vertex": [
+    16,
+    16
+  ],
+  "cursor-pick-face": [
+    16,
+    16
+  ],
+  "cursor-box-select": [
+    6,
+    6
+  ],
+  "cursor-scrub": [
+    16,
+    16
+  ],
+  "cursor-orbit": [
+    16,
+    16
+  ],
+  "cursor-pan": [
+    16,
+    16
+  ],
+  "cursor-grab": [
+    16,
+    16
+  ]
+}
